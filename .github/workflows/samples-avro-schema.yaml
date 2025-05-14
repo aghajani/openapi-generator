@@ -1,0 +1,33 @@
+name: Samples Avro Schema
+
+on:
+  push:
+    paths:
+      - "samples/openapi3/schema/petstore/avro*/**"
+  pull_request:
+    paths:
+      - "samples/openapi3/schema/petstore/avro*/**"
+
+jobs:
+  validate-avro-schema:
+    name: Validate Avro Schema
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: false
+      matrix:
+        sample:
+          - "samples/openapi3/schema/petstore/avro*/**"
+    steps:
+      - uses: actions/checkout@v4
+      - name: Set up Java
+        uses: actions/setup-java@v4
+        with:
+          distribution: 'temurin'
+          java-version: '21'
+      - name: Download Avro Tools
+        run: wget https://repo1.maven.org/maven2/org/apache/avro/avro-tools/1.12.0/avro-tools-1.12.0.jar
+      - name: Validate Avro Schemas
+        run: |
+          for file in $(find {{ matrix.sample }} -name "*.avsc"); do
+            java -jar avro-tools-1.12.0.jar getschema "$file" > /dev/null
+          done
